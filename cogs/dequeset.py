@@ -25,6 +25,8 @@ from typing import (
     overload,
 )
 
+from collections import deque
+
 SLICE_ALL = slice(None)
 __version__ = "4.1.0"
 
@@ -66,8 +68,8 @@ class DequeSet(MutableSet[T], Sequence[T]):
         DequeSet([1, 2, 3])
     """
 
-    def __init__(self, initial: DequeSetInitializer[T] = None, maxlen=0):
-        self.items: List[T] = []
+    def __init__(self, initial: DequeSetInitializer[T] = None, maxlen=None):
+        self.items: deque[T] = deque([], maxlen=maxlen)
         self.map: Dict[T, int] = {}
         self._maxlen = maxlen
         if initial is not None:
@@ -87,6 +89,10 @@ class DequeSet(MutableSet[T], Sequence[T]):
             2
         """
         return len(self.items)
+
+    @property
+    def maxlen(self):
+        return self._maxlen
 
     @overload
     def __getitem__(self, index: slice) -> "DequeSet[T]":
@@ -179,17 +185,13 @@ class DequeSet(MutableSet[T], Sequence[T]):
         """
         return key in self.map
 
-    def clean(fn):
-        """Cleans set to ensure that 'maxlen' is respected"""
+    def refresh_index(fn):
+        """Refreshes the index values to ensure correctness"""
 
         def _helper(self, *args, **kwargs):
             res = fn(self, *args, **kwargs)
-            count = 0
-            while len(self.items) > self.maxlen:
-                self.pop(0)
-                count += 1
-            for k, v in self.map.items():
-                self.map[k] = v - count
+            for i, key in enumerate(self.items):
+                self.map[key] = i
             return res
 
         return _helper
@@ -198,7 +200,7 @@ class DequeSet(MutableSet[T], Sequence[T]):
     # int instead of nothing. This is also one of the things that makes
     # DequeSet convenient to use.
 
-    @clean
+    @refresh_index
     def add(self, key: T) -> int:
         """
         Add `key` as an item to this DequeSet, then return its index.
@@ -220,6 +222,28 @@ class DequeSet(MutableSet[T], Sequence[T]):
 
     append = add
 
+    @refresh_index
+    def addleft(self, key: T) -> int:
+        """
+        Add `key` as an item to this DequeSet, then return its index.
+
+        If `key` is already in the DequeSet, return the index it already
+        had.
+
+        Example:
+            >>> oset = DequeSet()
+            >>> oset.append(3)
+            0
+            >>> print(oset)
+            DequeSet([3])
+        """
+        if key not in self.map:
+            self.items.appendleft(key)
+            self.map[key] = 0
+        return self.map[key]  # should always be 0
+
+    appendleft = addleft
+
     def update(self, sequence: SetLike[T]) -> int:
         """
         Update the set with the given iterable sequence, then return the index
@@ -239,10 +263,6 @@ class DequeSet(MutableSet[T], Sequence[T]):
         except TypeError:
             raise ValueError("Argument needs to be an iterable, got %s" % type(sequence))
         return item_index
-
-    @property
-    def maxlen(self):
-        return self._maxlen
 
     @overload
     def index(self, key: Sequence[T]) -> List[int]:
@@ -293,6 +313,10 @@ class DequeSet(MutableSet[T], Sequence[T]):
         del self.items[index]
         del self.map[elem]
         return elem
+
+    @refresh_index
+    def popleft(self):
+        return self.items.popleft()
 
     def discard(self, key: T) -> None:
         """
@@ -374,7 +398,6 @@ class DequeSet(MutableSet[T], Sequence[T]):
         else:
             return set(self) == other_as_set
 
-    @clean
     def union(
         self,
         *sets: SetLike[T],
