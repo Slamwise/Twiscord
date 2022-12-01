@@ -220,8 +220,6 @@ class DequeSet(MutableSet[T], Sequence[T]):
             self.items.append(key)
         return self.map[key]
 
-    append = add
-
     @refresh_index
     def addleft(self, key: T) -> int:
         """
@@ -241,8 +239,6 @@ class DequeSet(MutableSet[T], Sequence[T]):
             self.items.appendleft(key)
             self.map[key] = 0
         return self.map[key]  # should always be 0
-
-    appendleft = addleft
 
     def update(self, sequence: SetLike[T]) -> int:
         """
