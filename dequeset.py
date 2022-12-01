@@ -1,9 +1,9 @@
-# from ordered_set import DequeSet
+# from ordered_set import OrderedDequeSet
 # from typing import Iterable
 
 
 """
-An DequeSet is a custom MutableSet that remembers its order, so that every
+An OrderedDequeSet is a custom MutableSet that remembers its order, so that every
 entry has an index that can be looked up. It can also act like a Sequence.
 
 Based on a recipe originally posted to ActiveState Recipes by Raymond Hettiger,
@@ -34,15 +34,15 @@ __version__ = "4.1.0"
 T = TypeVar("T")
 
 # SetLike[T] is either a set of elements of type T, or a sequence, which
-# we will convert to an DequeSet by adding its elements in order.
+# we will convert to an OrderedDequeSet by adding its elements in order.
 SetLike = Union[AbstractSet[T], Sequence[T]]
-DequeSetInitializer = Union[AbstractSet[T], Sequence[T], Iterable[T]]
+OrderedDequeSetInitializer = Union[AbstractSet[T], Sequence[T], Iterable[T]]
 
 
 def _is_atomic(obj: Any) -> bool:
     """
     Returns True for objects which are iterable but should not be iterated in
-    the context of indexing an DequeSet.
+    the context of indexing an OrderedDequeSet.
 
     When we index by an iterable, usually that means we're being asked to look
     up a list of things.
@@ -52,23 +52,24 @@ def _is_atomic(obj: Any) -> bool:
     up, they're the single, atomic thing we're trying to find.
 
     As an example, oset.index('hello') should give the index of 'hello' in an
-    DequeSet of strings. It shouldn't give the indexes of each individual
+    OrderedDequeSet of strings. It shouldn't give the indexes of each individual
     character.
     """
     return isinstance(obj, str) or isinstance(obj, tuple)
 
 
-class DequeSet(MutableSet[T], Sequence[T]):
+class OrderedDequeSet(MutableSet[T], Sequence[T]):
     """
-    An DequeSet is a custom MutableSet that remembers its order, so that
-    every entry has an index that can be looked up.
+    An OrderedDequeSet is a custom MutableSet that remembers its order so that
+    every entry has an index that can be looked up. Additionally, it provides a
+    maxlen parameter to specify the maximum size of the structure.
 
     Example:
-        >>> DequeSet([1, 1, 2, 3, 2])
-        DequeSet([1, 2, 3])
+        >>> OrderedDequeSet([1, 1, 2, 3, 2])
+        OrderedDequeSet([1, 2, 3])
     """
 
-    def __init__(self, initial: DequeSetInitializer[T] = None, maxlen=None):
+    def __init__(self, initial: OrderedDequeSetInitializer[T] = None, maxlen=None):
         self.items: deque[T] = deque([], maxlen=maxlen)
         self.map: Dict[T, int] = {}
         self._maxlen = maxlen
@@ -83,9 +84,9 @@ class DequeSet(MutableSet[T], Sequence[T]):
         Returns the number of unique elements in the ordered set
 
         Example:
-            >>> len(DequeSet([]))
+            >>> len(OrderedDequeSet([]))
             0
-            >>> len(DequeSet([1, 2]))
+            >>> len(OrderedDequeSet([1, 2]))
             2
         """
         return len(self.items)
@@ -95,7 +96,7 @@ class DequeSet(MutableSet[T], Sequence[T]):
         return self._maxlen
 
     @overload
-    def __getitem__(self, index: slice) -> "DequeSet[T]":
+    def __getitem__(self, index: slice) -> "OrderedDequeSet[T]":
         ...
 
     @overload
@@ -112,16 +113,16 @@ class DequeSet(MutableSet[T], Sequence[T]):
         Get the item at a given index.
 
         If `index` is a slice, you will get back that slice of items, as a
-        new DequeSet.
+        new OrderedDequeSet.
 
         If `index` is a list or a similar iterable, you'll get a list of
         items corresponding to those indices. This is similar to NumPy's
-        "fancy indexing". The result is not an DequeSet because you may ask
+        "fancy indexing". The result is not an OrderedDequeSet because you may ask
         for duplicate indices, and the number of elements returned should be
         the number of elements asked for.
 
         Example:
-            >>> oset = DequeSet([1, 2, 3])
+            >>> oset = OrderedDequeSet([1, 2, 3])
             >>> oset[1]
             2
         """
@@ -136,14 +137,14 @@ class DequeSet(MutableSet[T], Sequence[T]):
             else:
                 return result
         else:
-            raise TypeError("Don't know how to index an DequeSet by %r" % index)
+            raise TypeError("Don't know how to index an OrderedDequeSet by %r" % index)
 
-    def copy(self) -> "DequeSet[T]":
+    def copy(self) -> "OrderedDequeSet[T]":
         """
         Return a shallow copy of this object.
 
         Example:
-            >>> this = DequeSet([1, 2, 3])
+            >>> this = OrderedDequeSet([1, 2, 3])
             >>> other = this.copy()
             >>> this == other
             True
@@ -152,7 +153,7 @@ class DequeSet(MutableSet[T], Sequence[T]):
         """
         return self.__class__(self, maxlen=self.maxlen)
 
-    # Define the gritty details of how an DequeSet is serialized as a pickle.
+    # Define the gritty details of how an OrderedDequeSet is serialized as a pickle.
     # We leave off type annotations, because the only code that should interact
     # with these is a generalized tool such as pickle.
     def __getstate__(self):
@@ -162,7 +163,7 @@ class DequeSet(MutableSet[T], Sequence[T]):
             #
             # This could have been done more gracefully by always putting the state
             # in a tuple, but this way is backwards- and forwards- compatible with
-            # previous versions of DequeSet.
+            # previous versions of OrderedDequeSet.
             return (None,)
         else:
             return list(self)
@@ -178,15 +179,15 @@ class DequeSet(MutableSet[T], Sequence[T]):
         Test if the item is in this ordered set.
 
         Example:
-            >>> 1 in DequeSet([1, 3, 2])
+            >>> 1 in OrderedDequeSet([1, 3, 2])
             True
-            >>> 5 in DequeSet([1, 3, 2])
+            >>> 5 in OrderedDequeSet([1, 3, 2])
             False
         """
         return key in self.map
 
     def refresh_index(fn):
-        """Refreshes the index values to ensure correctness"""
+        """Decorator to refresh the index values to ensure correctness in self.map"""
 
         def _helper(self, *args, **kwargs):
             res = fn(self, *args, **kwargs)
@@ -198,22 +199,22 @@ class DequeSet(MutableSet[T], Sequence[T]):
 
     # Technically type-incompatible with MutableSet, because we return an
     # int instead of nothing. This is also one of the things that makes
-    # DequeSet convenient to use.
+    # OrderedDequeSet convenient to use.
 
     @refresh_index
     def add(self, key: T) -> int:
         """
-        Add `key` as an item to this DequeSet, then return its index.
+        Add `key` as an item to this OrderedDequeSet, then return its index.
 
-        If `key` is already in the DequeSet, return the index it already
+        If `key` is already in the OrderedDequeSet, return the index it already
         had.
 
         Example:
-            >>> oset = DequeSet()
+            >>> oset = OrderedDequeSet()
             >>> oset.append(3)
             0
             >>> print(oset)
-            DequeSet([3])
+            OrderedDequeSet([3])
         """
         if key not in self.map:
             self.map[key] = len(self.items)
@@ -223,17 +224,17 @@ class DequeSet(MutableSet[T], Sequence[T]):
     @refresh_index
     def addleft(self, key: T) -> int:
         """
-        Add `key` as an item to this DequeSet, then return its index.
+        Add `key` as an item to this OrderedDequeSet, then return its index.
 
-        If `key` is already in the DequeSet, return the index it already
+        If `key` is already in the OrderedDequeSet, return the index it already
         had.
 
         Example:
-            >>> oset = DequeSet()
-            >>> oset.append(3)
+            >>> oset = OrderedDequeSet([3, 4, 5])
+            >>> oset.addleft(2)
             0
             >>> print(oset)
-            DequeSet([3])
+            OrderedDequeSet([2, 3, 4, 5])
         """
         if key not in self.map:
             self.items.appendleft(key)
@@ -246,11 +247,11 @@ class DequeSet(MutableSet[T], Sequence[T]):
         of the last element inserted.
 
         Example:
-            >>> oset = DequeSet([1, 2, 3])
+            >>> oset = OrderedDequeSet([1, 2, 3])
             >>> oset.update([3, 1, 5, 1, 4])
             4
             >>> print(oset)
-            DequeSet([1, 2, 3, 5, 4])
+            OrderedDequeSet([1, 2, 3, 5, 4])
         """
         item_index = 0
         try:
@@ -278,7 +279,7 @@ class DequeSet(MutableSet[T], Sequence[T]):
         this returns a list of indices.
 
         Example:
-            >>> oset = DequeSet([1, 2, 3])
+            >>> oset = OrderedDequeSet([1, 2, 3])
             >>> oset.index(2)
             1
         """
@@ -298,7 +299,7 @@ class DequeSet(MutableSet[T], Sequence[T]):
         Raises IndexError if index is out of range.
 
         Example:
-            >>> oset = DequeSet([1, 2, 3])
+            >>> oset = OrderedDequeSet([1, 2, 3])
             >>> oset.pop()
             3
         """
@@ -312,7 +313,22 @@ class DequeSet(MutableSet[T], Sequence[T]):
 
     @refresh_index
     def popleft(self):
-        return self.items.popleft()
+        """
+        Remove and return item at index 0.
+
+        Raises KeyError if the set is empty.
+        Raises IndexError if index is out of range.
+
+        Example:
+            >>> oset = OrderedDequeSet([1, 2, 3])
+            >>> oset.popleft()
+            1
+            >>> oset
+            OrderedDequeSet([2, 3])
+        """
+        elem = self.items.popleft()
+        del self.map[elem]
+        return elem
 
     def discard(self, key: T) -> None:
         """
@@ -322,13 +338,13 @@ class DequeSet(MutableSet[T], Sequence[T]):
         *does* raise an error when asked to remove a non-existent item.
 
         Example:
-            >>> oset = DequeSet([1, 2, 3])
+            >>> oset = OrderedDequeSet([1, 2, 3])
             >>> oset.discard(2)
             >>> print(oset)
-            DequeSet([1, 3])
+            OrderedDequeSet([1, 3])
             >>> oset.discard(2)
             >>> print(oset)
-            DequeSet([1, 3])
+            OrderedDequeSet([1, 3])
         """
         if key in self:
             i = self.map[key]
@@ -340,7 +356,7 @@ class DequeSet(MutableSet[T], Sequence[T]):
 
     def clear(self) -> None:
         """
-        Remove all items from this DequeSet.
+        Remove all items from this OrderedDequeSet.
         """
         del self.items[:]
         self.map.clear()
@@ -348,7 +364,7 @@ class DequeSet(MutableSet[T], Sequence[T]):
     def __iter__(self) -> Iterator[T]:
         """
         Example:
-            >>> list(iter(DequeSet([1, 2, 3])))
+            >>> list(iter(OrderedDequeSet([1, 2, 3])))
             [1, 2, 3]
         """
         return iter(self.items)
@@ -356,7 +372,7 @@ class DequeSet(MutableSet[T], Sequence[T]):
     def __reversed__(self) -> Iterator[T]:
         """
         Example:
-            >>> list(reversed(DequeSet([1, 2, 3])))
+            >>> list(reversed(OrderedDequeSet([1, 2, 3])))
             [3, 2, 1]
         """
         return reversed(self.items)
@@ -372,18 +388,18 @@ class DequeSet(MutableSet[T], Sequence[T]):
         Sequence, then order is checked, otherwise it is ignored.
 
         Example:
-            >>> oset = DequeSet([1, 3, 2])
+            >>> oset = OrderedDequeSet([1, 3, 2])
             >>> oset == [1, 3, 2]
             True
             >>> oset == [1, 2, 3]
             False
             >>> oset == [2, 3]
             False
-            >>> oset == DequeSet([3, 2, 1])
+            >>> oset == OrderedDequeSet([3, 2, 1])
             False
         """
         if isinstance(other, Sequence):
-            # Check that this DequeSet contains the same elements, in the
+            # Check that this OrderedDequeSet contains the same elements, in the
             # same order, as the other object.
             return list(self) == list(other)
         try:
@@ -397,70 +413,70 @@ class DequeSet(MutableSet[T], Sequence[T]):
     def union(
         self,
         *sets: SetLike[T],
-    ) -> "DequeSet[T]":
+    ) -> "OrderedDequeSet[T]":
         """
         Combines all unique items.
         Each items order is defined by its first appearance.
 
         Example:
-            >>> oset = DequeSet.union(DequeSet([3, 1, 4, 1, 5]), [1, 3], [2, 0])
+            >>> oset = OrderedDequeSet.union(OrderedDequeSet([3, 1, 4, 1, 5]), [1, 3], [2, 0])
             >>> print(oset)
-            DequeSet([3, 1, 4, 5, 2, 0])
+            OrderedDequeSet([3, 1, 4, 5, 2, 0])
             >>> oset.union([8, 9])
-            DequeSet([3, 1, 4, 5, 2, 0, 8, 9])
+            OrderedDequeSet([3, 1, 4, 5, 2, 0, 8, 9])
             >>> oset | {10}
-            DequeSet([3, 1, 4, 5, 2, 0, 10])
+            OrderedDequeSet([3, 1, 4, 5, 2, 0, 10])
         """
-        cls: type = DequeSet
-        if isinstance(self, DequeSet):
+        cls: type = OrderedDequeSet
+        if isinstance(self, OrderedDequeSet):
             cls = self.__class__
         containers = map(list, it.chain([self], sets))
         items = it.chain.from_iterable(containers)
         return cls(items, maxlen=self.maxlen)
 
-    def __and__(self, other: SetLike[T]) -> "DequeSet[T]":
+    def __and__(self, other: SetLike[T]) -> "OrderedDequeSet[T]":
         # the parent implementation of this is backwards
         return self.intersection(other)
 
-    def intersection(self, *sets: SetLike[T]) -> "DequeSet[T]":
+    def intersection(self, *sets: SetLike[T]) -> "OrderedDequeSet[T]":
         """
         Returns elements in common between all sets. Order is defined only
         by the first set.
 
         Example:
-            >>> oset = DequeSet.intersection(DequeSet([0, 1, 2, 3]), [1, 2, 3])
+            >>> oset = OrderedDequeSet.intersection(OrderedDequeSet([0, 1, 2, 3]), [1, 2, 3])
             >>> print(oset)
-            DequeSet([1, 2, 3])
+            OrderedDequeSet([1, 2, 3])
             >>> oset.intersection([2, 4, 5], [1, 2, 3, 4])
-            DequeSet([2])
+            OrderedDequeSet([2])
             >>> oset.intersection()
-            DequeSet([1, 2, 3])
+            OrderedDequeSet([1, 2, 3])
         """
-        cls: type = DequeSet
-        items: DequeSetInitializer[T] = self
-        if isinstance(self, DequeSet):
+        cls: type = OrderedDequeSet
+        items: OrderedDequeSetInitializer[T] = self
+        if isinstance(self, OrderedDequeSet):
             cls = self.__class__
         if sets:
             common = set.intersection(*map(set, sets))
             items = (item for item in self if item in common)
         return cls(items, self.maxlen)
 
-    def difference(self, *sets: SetLike[T]) -> "DequeSet[T]":
+    def difference(self, *sets: SetLike[T]) -> "OrderedDequeSet[T]":
         """
         Returns all elements that are in this set but not the others.
 
         Example:
-            >>> DequeSet([1, 2, 3]).difference(DequeSet([2]))
-            DequeSet([1, 3])
-            >>> DequeSet([1, 2, 3]).difference(DequeSet([2]), DequeSet([3]))
-            DequeSet([1])
-            >>> DequeSet([1, 2, 3]) - DequeSet([2])
-            DequeSet([1, 3])
-            >>> DequeSet([1, 2, 3]).difference()
-            DequeSet([1, 2, 3])
+            >>> OrderedDequeSet([1, 2, 3]).difference(OrderedDequeSet([2]))
+            OrderedDequeSet([1, 3])
+            >>> OrderedDequeSet([1, 2, 3]).difference(OrderedDequeSet([2]), OrderedDequeSet([3]))
+            OrderedDequeSet([1])
+            >>> OrderedDequeSet([1, 2, 3]) - OrderedDequeSet([2])
+            OrderedDequeSet([1, 3])
+            >>> OrderedDequeSet([1, 2, 3]).difference()
+            OrderedDequeSet([1, 2, 3])
         """
         cls = self.__class__
-        items: DequeSetInitializer[T] = self
+        items: OrderedDequeSetInitializer[T] = self
         if sets:
             other = set.union(*map(set, sets))
             items = (item for item in self if item not in other)
@@ -471,11 +487,11 @@ class DequeSet(MutableSet[T], Sequence[T]):
         Report whether another set contains this set.
 
         Example:
-            >>> DequeSet([1, 2, 3]).issubset({1, 2})
+            >>> OrderedDequeSet([1, 2, 3]).issubset({1, 2})
             False
-            >>> DequeSet([1, 2, 3]).issubset({1, 2, 3, 4})
+            >>> OrderedDequeSet([1, 2, 3]).issubset({1, 2, 3, 4})
             True
-            >>> DequeSet([1, 2, 3]).issubset({1, 4, 3, 5})
+            >>> OrderedDequeSet([1, 2, 3]).issubset({1, 4, 3, 5})
             False
         """
         if len(self) > len(other):  # Fast check for obvious cases
@@ -487,20 +503,20 @@ class DequeSet(MutableSet[T], Sequence[T]):
         Report whether this set contains another set.
 
         Example:
-            >>> DequeSet([1, 2]).issuperset([1, 2, 3])
+            >>> OrderedDequeSet([1, 2]).issuperset([1, 2, 3])
             False
-            >>> DequeSet([1, 2, 3, 4]).issuperset({1, 2, 3})
+            >>> OrderedDequeSet([1, 2, 3, 4]).issuperset({1, 2, 3})
             True
-            >>> DequeSet([1, 4, 3, 5]).issuperset({1, 2, 3})
+            >>> OrderedDequeSet([1, 4, 3, 5]).issuperset({1, 2, 3})
             False
         """
         if len(self) < len(other):  # Fast check for obvious cases
             return False
         return all(item in self for item in other)
 
-    def symmetric_difference(self, other: SetLike[T]) -> "DequeSet[T]":
+    def symmetric_difference(self, other: SetLike[T]) -> "OrderedDequeSet[T]":
         """
-        Return the symmetric difference of two DequeSets as a new set.
+        Return the symmetric difference of two OrderedDequeSets as a new set.
         That is, the new set will contain all elements that are in exactly
         one of the sets.
 
@@ -508,13 +524,13 @@ class DequeSet(MutableSet[T], Sequence[T]):
         elements from `other`.
 
         Example:
-            >>> this = DequeSet([1, 4, 3, 5, 7])
-            >>> other = DequeSet([9, 7, 1, 3, 2])
+            >>> this = OrderedDequeSet([1, 4, 3, 5, 7])
+            >>> other = OrderedDequeSet([9, 7, 1, 3, 2])
             >>> this.symmetric_difference(other)
-            DequeSet([4, 5, 9, 2])
+            OrderedDequeSet([4, 5, 9, 2])
         """
-        cls: type = DequeSet
-        if isinstance(self, DequeSet):
+        cls: type = OrderedDequeSet
+        if isinstance(self, OrderedDequeSet):
             cls = self.__class__
         diff1 = cls(self, maxlen=self.maxlen).difference(other)
         diff2 = cls(other, maxlen=self.maxlen).difference(self)
@@ -522,7 +538,7 @@ class DequeSet(MutableSet[T], Sequence[T]):
 
     def _update_items(self, items: list) -> None:
         """
-        Replace the 'items' list of this DequeSet with a new one, updating
+        Replace the 'items' list of this OrderedDequeSet with a new one, updating
         self.map accordingly.
         """
         self.items = items
@@ -530,18 +546,18 @@ class DequeSet(MutableSet[T], Sequence[T]):
 
     def difference_update(self, *sets: SetLike[T]) -> None:
         """
-        Update this DequeSet to remove items from one or more other sets.
+        Update this OrderedDequeSet to remove items from one or more other sets.
 
         Example:
-            >>> this = DequeSet([1, 2, 3])
-            >>> this.difference_update(DequeSet([2, 4]))
+            >>> this = OrderedDequeSet([1, 2, 3])
+            >>> this.difference_update(OrderedDequeSet([2, 4]))
             >>> print(this)
-            DequeSet([1, 3])
+            OrderedDequeSet([1, 3])
 
-            >>> this = DequeSet([1, 2, 3, 4, 5])
-            >>> this.difference_update(DequeSet([2, 4]), DequeSet([1, 4, 6]))
+            >>> this = OrderedDequeSet([1, 2, 3, 4, 5])
+            >>> this.difference_update(OrderedDequeSet([2, 4]), OrderedDequeSet([1, 4, 6]))
             >>> print(this)
-            DequeSet([3, 5])
+            OrderedDequeSet([3, 5])
         """
         items_to_remove = set()  # type: Set[T]
         for other in sets:
@@ -551,30 +567,30 @@ class DequeSet(MutableSet[T], Sequence[T]):
 
     def intersection_update(self, other: SetLike[T]) -> None:
         """
-        Update this DequeSet to keep only items in another set, preserving
+        Update this OrderedDequeSet to keep only items in another set, preserving
         their order in this set.
 
         Example:
-            >>> this = DequeSet([1, 4, 3, 5, 7])
-            >>> other = DequeSet([9, 7, 1, 3, 2])
+            >>> this = OrderedDequeSet([1, 4, 3, 5, 7])
+            >>> other = OrderedDequeSet([9, 7, 1, 3, 2])
             >>> this.intersection_update(other)
             >>> print(this)
-            DequeSet([1, 3, 7])
+            OrderedDequeSet([1, 3, 7])
         """
         other = set(other)
         self._update_items([item for item in self.items if item in other])
 
     def symmetric_difference_update(self, other: SetLike[T]) -> None:
         """
-        Update this DequeSet to remove items from another set, then
+        Update this OrderedDequeSet to remove items from another set, then
         add items from the other set that were not present in this set.
 
         Example:
-            >>> this = DequeSet([1, 4, 3, 5, 7])
-            >>> other = DequeSet([9, 7, 1, 3, 2])
+            >>> this = OrderedDequeSet([1, 4, 3, 5, 7])
+            >>> other = OrderedDequeSet([9, 7, 1, 3, 2])
             >>> this.symmetric_difference_update(other)
             >>> print(this)
-            DequeSet([4, 5, 9, 2])
+            OrderedDequeSet([4, 5, 9, 2])
         """
         items_to_add = [item for item in other if item not in self]
         items_to_remove = set(other)
