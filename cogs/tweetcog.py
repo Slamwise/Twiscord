@@ -2,6 +2,7 @@ from discord.ext import tasks, commands
 from pprint import pprint
 from tweets import create_api, get_list_timeline
 from collections import deque, defaultdict
+from ordered_set import OrderedSet
 import tweepy as tp
 import asyncio
 
@@ -30,12 +31,13 @@ class Tweets(commands.Cog):
     async def tweet_fetcher(self):
 
         fresh_tweets = get_list_timeline(self.list_id, self.owner_id, self.api)
-        if self.count == 0:
+        if self.count != 0:
             i = 0
             tweets_to_add = []
-            while i < len(fresh_tweets) and new_tweets[i][1] not in self.tweet_ids[name]:
-                tweets_to_add.append(new_tweets[i])
-                i += 1
+            for name, tweets in fresh_tweets.items():
+                while i < len(fresh_tweets) and new_tweets[i][1] not in self.tweet_ids[name]:
+                    tweets_to_add.append(new_tweets[i])
+                    i += 1
 
             tweet_ids_to_add = [tweet[1] for tweet in tweets_to_add]
             if tweets_to_add:

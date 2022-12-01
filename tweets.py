@@ -1,6 +1,8 @@
 import tweepy as tp
 import os
 from dotenv import load_dotenv
+from pprint import pprint
+from collections import defaultdict
 
 load_dotenv()
 env = dict(os.environ)
@@ -22,11 +24,13 @@ def create_api() -> tp.API:
 def get_list_timeline(list_id: int, owner_id: int, api: tp.API = None):
     if not api:
         api = create_api()
-    tweets = api.list_timeline(list_id=list_id, owner_id=owner_id, count=100, tweet_mode="extended")
-    cleaned_tweets = [(tweet.created_at, tweet.id, tweet.user.screen_name.lower(), tweet.full_text) for tweet in tweets]
+    tweets = api.list_timeline(list_id=list_id, owner_id=owner_id, count=20, tweet_mode="extended")
+    cleaned_tweets = defaultdict(list)
+    for tweet in tweets:
+        cleaned_tweets[tweet.user.screen_name.lower()].append((tweet.created_at, tweet.id, tweet.full_text))
     return cleaned_tweets
 
 
 if __name__ == "__main__":
     api = create_api()
-    print(get_list_timeline(1597755224684388353, 1094812631205101600, api))
+    pprint(get_list_timeline(1597755224684388353, 1094812631205101600, api))
