@@ -12,5 +12,5 @@ class Notify(commands.Cog):
         await tweets.setup_hook()
 
 
-def setup(bot: commands.Bot):
-    bot.add_cog(Notify(bot))
+async def setup(bot: commands.Bot):
+    await bot.add_cog(Notify(bot))

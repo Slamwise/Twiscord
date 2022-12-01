@@ -1,6 +1,6 @@
 from discord.ext import tasks, commands
 from pprint import pprint
-from tweets import fetch_tweets, create_api
+from tweets import create_api, get_list_timeline
 from collections import deque, defaultdict
 import tweepy as tp
 import asyncio
@@ -28,12 +28,12 @@ class Tweets(commands.Cog):
 
     @tasks.loop(seconds=5)
     async def tweet_fetcher(self):
-        name = "firstsquawk"
-        new_tweets = fetch_tweets(name)
-        if len(self.tweets) != 0:
+
+        fresh_tweets = get_list_timeline(self.list_id, self.owner_id, self.api)
+        if self.count == 0:
             i = 0
             tweets_to_add = []
-            while i < len(new_tweets) and new_tweets[i][1] not in self.tweet_ids[name]:
+            while i < len(fresh_tweets) and new_tweets[i][1] not in self.tweet_ids[name]:
                 tweets_to_add.append(new_tweets[i])
                 i += 1
 
@@ -46,6 +46,7 @@ class Tweets(commands.Cog):
                 self.tweet_ids[name].extend(tweet_ids_to_add)
             self.count += 1
             pprint(self.count)
+
         else:  # first fetch
             self.tweets[name].extend(list(reversed(new_tweets)))
             self.tweet_ids[name].extend([tweet[1] for tweet in new_tweets])
@@ -128,6 +129,7 @@ class Tweets(commands.Cog):
 
         for name in args:
             try:
+                name = name.lower()
                 self.channels[ctx.channel.id].remove(name)
                 rem.append(name)
             except ValueError:
@@ -164,5 +166,5 @@ class Tweets(commands.Cog):
         await ctx.send("Tweet fetcher not running")
 
 
-def setup(bot: commands.Bot):
-    bot.add_cog(Tweets(bot))
+async def setup(bot: commands.Bot):
+    await bot.add_cog(Tweets(bot))

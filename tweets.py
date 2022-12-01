@@ -19,14 +19,14 @@ def create_api() -> tp.API:
     return tp.API(auth=auth, wait_on_rate_limit=True)
 
 
-def fetch_tweets(screen_name: str, api: tp.API = None):
+def get_list_timeline(list_id: int, owner_id: int, api: tp.API = None):
     if not api:
         api = create_api()
-    tweets = api.user_timeline(screen_name=screen_name, tweet_mode="extended")
-    cleaned_tweets = [[tweet.created_at, tweet.id, tweet.full_text] for tweet in tweets]
+    tweets = api.list_timeline(list_id=list_id, owner_id=owner_id, count=100, tweet_mode="extended")
+    cleaned_tweets = [(tweet.created_at, tweet.id, tweet.user.screen_name.lower(), tweet.full_text) for tweet in tweets]
     return cleaned_tweets
 
 
 if __name__ == "__main__":
     api = create_api()
-    api.add_list_member()
+    print(get_list_timeline(1597755224684388353, 1094812631205101600, api))
