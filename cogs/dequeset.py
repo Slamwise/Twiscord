@@ -180,6 +180,8 @@ class DequeSet(MutableSet[T], Sequence[T]):
         return key in self.map
 
     def clean(fn):
+        """Cleans set to ensure that 'maxlen' is respected"""
+
         def _helper(self, *args, **kwargs):
             res = fn(self, *args, **kwargs)
             count = 0
