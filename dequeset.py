@@ -1,13 +1,15 @@
-# from ordered_set import OrderedDequeSet
-# from typing import Iterable
-
-
 """
 An OrderedDequeSet is a custom MutableSet that remembers its order, so that every
-entry has an index that can be looked up. It can also act like a Sequence.
+entry has an index that can be looked up. It can also act like a Sequence. 
+
+Interally, it maintains a deque allowing for addleft, popleft, and max length.
+By default, items are popped off the left when adding to the right, and from the right
+when adding to the left.
 
 Based on a recipe originally posted to ActiveState Recipes by Raymond Hettiger,
-and released under the MIT license.
+and released under the MIT license. 
+
+Tweaked by imbesci and rereleased under the MIT license.
 """
 import itertools as it
 from typing import (
