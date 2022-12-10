@@ -1,6 +1,9 @@
 import tweepy as tp
 import os
 from dotenv import load_dotenv
+from pprint import pprint
+from collections import defaultdict
+from dequeset import OrderedDequeSet
 
 load_dotenv()
 env = dict(os.environ)
@@ -19,14 +22,17 @@ def create_api() -> tp.API:
     return tp.API(auth=auth, wait_on_rate_limit=True)
 
 
-def fetch_tweets(screen_name: str, api: tp.API = None):
+def get_list_timeline(list_id: int, owner_id: int, api: tp.API = None):
     if not api:
         api = create_api()
-    tweets = api.user_timeline(screen_name=screen_name, tweet_mode="extended")
-    cleaned_tweets = [[tweet.created_at, tweet.id, tweet.full_text] for tweet in tweets]
+    tweets = api.list_timeline(list_id=list_id, owner_id=owner_id, count=20, tweet_mode="extended")
+    cleaned_tweets = defaultdict(OrderedDequeSet)
+    for tweet in tweets:
+        cleaned_tweets[tweet.user.screen_name.lower()].add((tweet.created_at, tweet.id, tweet.full_text))
     return cleaned_tweets
 
 
 if __name__ == "__main__":
     api = create_api()
-    api.add_list_member()
+    # pprint(get_list_timeline(1597755224684388353, 1094812631205101600, api))
+    pprint(api.get_user(screen_name="imbesciasdfadsfadsfaf"))
