@@ -412,6 +412,19 @@ class OrderedDequeSet(MutableSet[T], Sequence[T]):
         else:
             return set(self) == other_as_set
 
+    def reverse(self):
+        """Reverses the OrderedDequeSet and returns the instance"""
+        l, r = 0, len(self.items) - 1
+        while l < r:
+            lkey, rkey = self.items[l], self.items[r]
+            self.items[l] = rkey
+            self.items[r] = lkey
+            self.map[lkey] = r
+            self.map[rkey] = l
+            l += 1
+            r -= 1
+        return self
+
     def union(
         self,
         *sets: SetLike[T],

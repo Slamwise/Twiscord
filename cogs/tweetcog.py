@@ -2,9 +2,10 @@ from discord.ext import tasks, commands
 from pprint import pprint
 from tweets import create_api, get_list_timeline
 from collections import deque, defaultdict
-from ordered_set import OrderedSet
+from dequeset import OrderedDequeSet
 import tweepy as tp
 import asyncio
+import logging
 
 
 class Tweets(commands.Cog):
@@ -13,8 +14,9 @@ class Tweets(commands.Cog):
         self.api: tp.API = create_api()
         self.list_id = 1597755224684388353
         self.owner_id = 1094812631205101600
-        self.tweets = defaultdict(lambda: deque([], maxlen=100))
-        self.tweet_ids = defaultdict(lambda: deque([], maxlen=100))
+        self.recency_queue = OrderedDequeSet(maxlen=100)
+        self.tweets = defaultdict(lambda: OrderedDequeSet(maxlen=100))
+        self.tweet_ids = defaultdict(lambda: OrderedDequeSet(maxlen=100))
         self.subsconfig = defaultdict(list)
         self.channels = defaultdict(list)
         self.global_list = []
@@ -24,34 +26,48 @@ class Tweets(commands.Cog):
     async def on_ready(self):
         if not self.tweet_fetcher.is_running():
             members = self.api.get_list_members(list_id=self.list_id, owner_id=self.owner_id)
-            self.global_list = [member.screen_name for member in members] + ["firstsquawk", "test", "test2"]
+            self.global_list = [member.screen_name for member in members]
             await self.tweet_fetcher.start()
 
-    @tasks.loop(seconds=5)
+    def add_list_member(self, account):
+        self.api.add_list_member(list_id=self.list_id, owner_id=self.owner_id, screen_name=account)
+
+    @tasks.loop(seconds=1)
     async def tweet_fetcher(self):
+        loop = asyncio.get_event_loop()
+        fetched = False
+        while not fetched:
+            try:
+                fresh_tweets = get_list_timeline(self.list_id, self.owner_id, self.api)
+                fetched = True
+            except tp.TwitterServerError as ServerError:
+                logging.warning(f"Error caught: {ServerError}")
+                await asyncio.sleep(2)
 
-        fresh_tweets = get_list_timeline(self.list_id, self.owner_id, self.api)
+        to_send = defaultdict(lambda: OrderedDequeSet(maxlen=100))
         if self.count != 0:
-            i = 0
-            tweets_to_add = []
-            for name, tweets in fresh_tweets.items():
-                while i < len(fresh_tweets) and new_tweets[i][1] not in self.tweet_ids[name]:
-                    tweets_to_add.append(new_tweets[i])
-                    i += 1
+            for account, user_fetch in fresh_tweets.items():
+                new_tweets = user_fetch.difference(self.recency_queue).reverse()
+                if new_tweets.__len__() > 0:
+                    to_send[account] = new_tweets
+                    self.recency_queue = self.recency_queue.union(new_tweets)
 
-            tweet_ids_to_add = [tweet[1] for tweet in tweets_to_add]
-            if tweets_to_add:
-                tweets_to_add = list(reversed(tweets_to_add))
-                if self.channels:
-                    pass
-                self.tweets[name].extend(tweets_to_add)
-                self.tweet_ids[name].extend(tweet_ids_to_add)
+            print(to_send)
+            if len(to_send) > 0:
+                for account, new_tweets in to_send.items():
+                    if self.subsconfig.get(account) is None:
+                        continue
+
+                    channels = self.subsconfig.get(account)
+                    print(channels)
+                    for channel in channels:
+                        [asyncio.create_task(self.bot.get_channel(channel).send(tweet[2])) for tweet in new_tweets]
+
             self.count += 1
             pprint(self.count)
 
         else:  # first fetch
-            self.tweets[name].extend(list(reversed(new_tweets)))
-            self.tweet_ids[name].extend([tweet[1] for tweet in new_tweets])
+
             self.count += 1
             print(self.count)
 
@@ -101,7 +117,7 @@ class Tweets(commands.Cog):
     @commands.command(name="followingnow")
     async def followingnow(self, ctx: commands.Context):
         """Display all the accounts the current channel is following"""
-        follows = self.channels[ctx.channel.id]
+        follows = [account for account, channels in self.subsconfig.items() if ctx.channel.id in channels]
         lenfol = len(follows)
         if lenfol == 0:
             await ctx.send("This channel is currently following: No one")
@@ -114,15 +130,32 @@ class Tweets(commands.Cog):
         if not args:
             await ctx.send("Please provide an account with the command e.g ?follow firstsquawk or ?follow !all")
 
-        if args[0] == "!all":
+        elif len(args) > 1:
+            await ctx.send("?follow can only handle one account at a time.")
+
+        elif args[0] == "!all":
             if not self.global_list:
                 await ctx.send("No one in global list, please specify an account")
                 return
 
-            self.channels[ctx.channel.id] = self.global_list
+            for account in self.global_list:
+                self.subsconfig[account].append(ctx.channel.id)
 
         else:
-            self.channels[ctx.channel.id].append(args[0])
+            try:
+                cleaned_name = args[0].strip().lower()
+                _ = self.api.get_user(screen_name=cleaned_name)
+                self.subsconfig[cleaned_name].append(ctx.channel.id)
+                if cleaned_name not in self.global_list:
+                    self.global_list.append(cleaned_name)
+                    self.add_list_member(cleaned_name)
+                await ctx.send(f"Now following {args[0]}")
+            except tp.NotFound as e:
+                await ctx.send(f"Twitter user {args[0]} is not valid account")
+                logging.info(e)
+            except Exception as e:
+                await ctx.send(f"Another error occurred please try again later")
+                logging.warn(e)
 
     @commands.command()
     async def remove(self, ctx: commands.Context, *args):
