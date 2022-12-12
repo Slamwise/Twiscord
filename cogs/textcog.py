@@ -4,6 +4,7 @@ from dotenv import load_dotenv
 from collections import defaultdict
 from tweetcog import shared_data
 from dequeset import OrderedDequeSet
+from tweets import create_api
 import tweepy as tp
 import asyncio
 import os

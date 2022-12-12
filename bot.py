@@ -13,6 +13,7 @@ def main():
 
     asyncio.run(bot.load_extension("cogs.ping"))
     asyncio.run(bot.load_extension("cogs.tweetcog"))
+    asyncio.run(bot.load_extension("cogs.textcog"))
 
     @bot.event
     async def on_ready():
