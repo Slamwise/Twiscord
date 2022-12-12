@@ -19,10 +19,11 @@ class Texts(commands.Cog):
         self.api: tp.API = create_api()
         #Needs to be pickled on shutdown:
         self.msg_history = defaultdict(lambda: OrderedDequeSet(maxlen=100))
-
+        self.shared_data = {"TT3Private": [("12Dec22", "12390123uiwef", "test1"), ("12Dec22", "1239sdafsdafasgbdagwfuiwef", "test2")]}
+        
     @tasks.loop(seconds=0.5)
     async def check_tweets(self):
-        for handle in shared_data:
+        for handle in self.shared_data:
             if handle not in self.subsconfig:
                 continue
             else:
