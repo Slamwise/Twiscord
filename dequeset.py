@@ -97,6 +97,14 @@ class OrderedDequeSet(MutableSet[T], Sequence[T]):
     def maxlen(self):
         return self._maxlen
 
+    @maxlen.setter
+    def maxlen(self, value: int):
+        if not isinstance(value, int):
+            raise TypeError("'maxlen' must be an integer")
+
+        self._maxlen = value
+        self.items = deque(self.items, maxlen=value)
+
     @overload
     def __getitem__(self, index: slice) -> "OrderedDequeSet[T]":
         ...

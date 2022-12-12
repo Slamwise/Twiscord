@@ -14,7 +14,7 @@ class Tweets(commands.Cog):
         self.api: tp.API = create_api()
         self.list_id = 1597755224684388353
         self.owner_id = 1094812631205101600
-        self.recency_queue = OrderedDequeSet(maxlen=100)
+        self.recency_queue: OrderedDequeSet = None
         self.tweets = defaultdict(lambda: OrderedDequeSet(maxlen=100))
         self.tweet_ids = defaultdict(lambda: OrderedDequeSet(maxlen=100))
         self.subsconfig = defaultdict(list)
@@ -34,7 +34,6 @@ class Tweets(commands.Cog):
 
     @tasks.loop(seconds=1)
     async def tweet_fetcher(self):
-        loop = asyncio.get_event_loop()
         fetched = False
         while not fetched:
             try:
@@ -52,7 +51,9 @@ class Tweets(commands.Cog):
                     to_send[account] = new_tweets
                     self.recency_queue = self.recency_queue.union(new_tweets)
 
+            print(f"recency_queue maxlen: {self.recency_queue.maxlen}")
             print(to_send)
+
             if len(to_send) > 0:
                 for account, new_tweets in to_send.items():
                     if self.subsconfig.get(account) is None:
@@ -67,7 +68,8 @@ class Tweets(commands.Cog):
             pprint(self.count)
 
         else:  # first fetch
-
+            all_tweets_in_order = sorted([tweet for _, tweets in fresh_tweets.items() for tweet in tweets], key=lambda x: x[0])
+            self.recency_queue = OrderedDequeSet(all_tweets_in_order, maxlen=200)
             self.count += 1
             print(self.count)
 

@@ -22,7 +22,7 @@ def create_api() -> tp.API:
     return tp.API(auth=auth, wait_on_rate_limit=True)
 
 
-def get_list_timeline(list_id: int, owner_id: int, api: tp.API = None):
+def get_list_timeline(list_id: int, owner_id: int, api: tp.API = None) -> OrderedDequeSet:
     if not api:
         api = create_api()
     tweets = api.list_timeline(list_id=list_id, owner_id=owner_id, count=20, tweet_mode="extended")
