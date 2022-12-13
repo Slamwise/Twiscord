@@ -51,8 +51,8 @@ class Tweets(commands.Cog):
                     to_send[account] = new_tweets
                     self.recency_queue = self.recency_queue.union(new_tweets)
 
-            print(f"recency_queue maxlen: {self.recency_queue.maxlen}")
-            print(to_send)
+            # print(f"recency_queue maxlen: {self.recency_queue.maxlen}")
+            # print(to_send)
 
             if len(to_send) > 0:
                 for account, new_tweets in to_send.items():
@@ -60,18 +60,18 @@ class Tweets(commands.Cog):
                         continue
 
                     channels = self.subsconfig.get(account)
-                    print(channels)
+                    # print(channels)
                     for channel in channels:
                         [asyncio.create_task(self.bot.get_channel(channel).send(tweet[2])) for tweet in new_tweets]
 
             self.count += 1
-            pprint(self.count)
+            # pprint(self.count)
 
         else:  # first fetch
             all_tweets_in_order = sorted([tweet for _, tweets in fresh_tweets.items() for tweet in tweets], key=lambda x: x[0])
             self.recency_queue = OrderedDequeSet(all_tweets_in_order, maxlen=200)
             self.count += 1
-            print(self.count)
+            # print(self.count)
 
     @tweet_fetcher.before_loop
     async def _prefetch(self):

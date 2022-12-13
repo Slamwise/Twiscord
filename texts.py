@@ -14,5 +14,5 @@ async def send_sms(number, msg):
     auth = aiohttp.BasicAuth(login=account_sid, password=auth_token)
     async with aiohttp.ClientSession(auth = aiohttp.BasicAuth(login=account_sid, password=auth_token)) as session:
         return await session.post(
-            f'https://api.twilio.com/2010-0-01/Accounts/{account_sid}/Messages.json',
-            data={'From': from_, 'To': number, 'Body': msg})
+            f'https://api.twilio.com/2010-04-01/Accounts/{account_sid}/Messages.json',
+            data={'From': "+1"+from_, 'To': "+1"+number, 'Body': msg})
