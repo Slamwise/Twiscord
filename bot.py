@@ -36,8 +36,6 @@ def main():
     async def on_shutdown():
         print("caught!")
 
-    bot.login
-
     asyncio.run(bot.load_extension("cogs.ping"))
     asyncio.run(bot.load_extension("cogs.tweetcog"))
 
