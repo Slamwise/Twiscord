@@ -4,6 +4,7 @@ from dotenv import load_dotenv
 from pprint import pprint
 from collections import defaultdict
 from dequeset import OrderedDequeSet
+from datetime import datetime
 
 load_dotenv()
 env = dict(os.environ)
@@ -28,5 +29,5 @@ def get_list_timeline(list_id: int, owner_id: int, api: tp.API = None) -> Ordere
     tweets = api.list_timeline(list_id=list_id, owner_id=owner_id, count=20, tweet_mode="extended")
     cleaned_tweets = OrderedDequeSet()
     for tweet in tweets:
-        cleaned_tweets.add((tweet.created_at, tweet.author.screen_name.strip().lower(), tweet.id, tweet.full_text))
-    return sorted(cleaned_tweets, key=lambda x: x[0], reverse=True)  # [-1] has most recent tweet by time
+        cleaned_tweets.add((tweet.created_at.timestamp(), tweet.author.screen_name.strip().lower(), tweet.id, tweet.full_text))
+    return sorted(cleaned_tweets, key=lambda x: x[0])  # [-1] has most recent tweet by time
