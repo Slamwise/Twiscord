@@ -19,12 +19,10 @@ class Texts(commands.Cog):
         self.api: tp.API = create_api()
         #Needs to be pickled on shutdown:
         self.msg_history = defaultdict(lambda: OrderedDequeSet(maxlen=100))
-        #Delete:
-        self.shared_data = {"TT3Private": [("12Dec22", "12390123uiwef", "test1"), ("12Dec22", "1239sdafsdafasgbdagwfuiwef", "test2")]}
 
     @commands.Cog.listener()
     async def on_ready(self):
-        os.system('python flask/webhooks.py')
+        os.system('python webhooks.py')
         if not self.check_tweets.is_running():
             await self.check_tweets.start()
 
@@ -34,12 +32,12 @@ class Texts(commands.Cog):
             if handle not in self.subsconfig:
                 continue
             else:
-                change_queue = open("./flask/changes.txt", "r")
+                change_queue = open("changes.txt", "r")
                 nums = tuple(self.subsconfig[handle])
-                if handle not in self.msg_history or self.shared_data[handle][-1] != self.msg_history[handle][-1][0]:
-                    self.msg_history[handle].add((self.shared_data[handle][-1], nums))
+                if handle not in self.msg_history or shared_tweets[handle][-1] != self.msg_history[handle][-1][0]:
+                    self.msg_history[handle].add((shared_tweets[handle][-1], nums))
                     for num in nums:
-                        await send_sms(num, self.shared_data[handle][-1][2])
+                        await send_sms(num, shared_tweets[handle][-1][2])
 
     @check_tweets.before_loop
     async def _precheck(self):
