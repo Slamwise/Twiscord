@@ -44,7 +44,6 @@ class Tweets(commands.Cog):
 
     @tasks.loop(seconds=1)
     async def tweet_fetcher(self):
-        pprint(shared_tweets['imbesci'])
         fetched = False
         while not fetched:
             try:

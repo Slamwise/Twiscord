@@ -1,6 +1,5 @@
 from discord.ext import tasks, commands
 from texts import send_sms
-from dotenv import load_dotenv
 from collections import defaultdict
 from cogs.tweetcog import shared_tweets
 from dequeset import OrderedDequeSet
@@ -9,11 +8,11 @@ import tweepy as tp
 import asyncio
 import os
 import logging
+import pprint
+import ast
 
 class Texts(commands.Cog):
     def __init__(self, bot: commands.Bot):
-        load_dotenv()
-        env = dict(os.environ)
         self.bot = bot
         self.subsconfig = defaultdict(set)
         self.api: tp.API = create_api()
@@ -33,11 +32,14 @@ class Texts(commands.Cog):
                 continue
             else:
                 change_queue = open("changes.txt", "r")
+                for line in change_queue.splitlines(keepends=False):
+                    change = ast.literal_eval(line)
+                    pprint(change)
                 nums = tuple(self.subsconfig[handle])
                 if handle not in self.msg_history or shared_tweets[handle][-1] != self.msg_history[handle][-1][0]:
                     self.msg_history[handle].add((shared_tweets[handle][-1], nums))
                     for num in nums:
-                        await send_sms(num, shared_tweets[handle][-1][2])
+                        await send_sms(num, shared_tweets[handle][-1][-1])
 
     @check_tweets.before_loop
     async def _precheck(self):
