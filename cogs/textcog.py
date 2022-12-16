@@ -15,7 +15,7 @@ import subprocess
 class Texts(commands.Cog):
     def __init__(self, bot: commands.Bot):
         self.bot = bot
-        self.subsconfig = defaultdict(set)
+        self.subsconfig = defaultdict(list)
         self.api: tp.API = create_api()
         #Needs to be pickled on shutdown:
         self.msg_history = defaultdict(lambda: OrderedDequeSet(maxlen=100))
@@ -64,7 +64,7 @@ class Texts(commands.Cog):
             try:
                 cleaned_name = args[1].strip()
                 _ = self.api.get_user(screen_name=cleaned_name)
-                self.subsconfig[cleaned_name].add(args[0])
+                self.subsconfig[cleaned_name].append(args[0])
                 asyncio.create_task(ctx.send(f"{args[0]} now following {args[1]}"))
             except tp.NotFound as e:
                 asyncio.create_task(ctx.send(f"Twitter user {args[1]} is not valid account"))
