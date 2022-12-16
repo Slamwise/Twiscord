@@ -33,11 +33,9 @@ class Texts(commands.Cog):
             if handle not in self.subsconfig:
                 continue
             elif handle in self.subsconfig:
-                change_queue = open("changes.txt", "r")
-                for line in change_queue.splitlines(keepends=False):
-                    change = ast.literal_eval(line)
-                    pprint(change)
-                print('1')
+                # change_queue = open("changes.txt", "r")
+                # for line in change_queue.splitlines(keepends=False):
+                #     change = ast.literal_eval(line)
                 nums = tuple(self.subsconfig[handle])
                 if handle not in self.msg_history or shared_tweets[handle][-1] != self.msg_history[handle][-1][0]:
                     print(shared_tweets[handle][-1])
