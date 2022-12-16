@@ -10,6 +10,7 @@ import os
 import logging
 import pprint
 import ast
+import subprocess
 
 class Texts(commands.Cog):
     def __init__(self, bot: commands.Bot):
@@ -21,7 +22,7 @@ class Texts(commands.Cog):
 
     @commands.Cog.listener()
     async def on_ready(self):
-        os.system('python webhooks.py')
+        server = subprocess.Popen(['python3','webhooks.py'])
         if not self.check_tweets.is_running():
             await self.check_tweets.start()
 

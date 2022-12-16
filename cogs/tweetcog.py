@@ -82,13 +82,13 @@ class Tweets(commands.Cog):
             self.recency_queue = self.recency_queue.union(recent_tweets)
             [shared_tweets[tweet[1]].add(tweet) for tweet in recent_tweets]
             self.count += 1
-            # pprint(self.count)
+            pprint(self.count)
 
         else:  # first fetch tweet.created_at, tweet.author.screen_name.strip().lower(), tweet.id, tweet.full_text
             self.recency_queue = OrderedDequeSet(fresh_tweets, maxlen=200)
             [shared_tweets[tweet[1]].add(tweet) for tweet in self.recency_queue]
             self.count += 1
-            # print(self.count)
+            print(self.count)
 
     @tweet_fetcher.before_loop
     async def _prefetch(self):
