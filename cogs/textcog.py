@@ -4,11 +4,11 @@ from collections import defaultdict
 from cogs.tweetcog import shared_tweets
 from dequeset import OrderedDequeSet
 from tweets import create_api
+from pprint import pprint
 import tweepy as tp
 import asyncio
 import os
 import logging
-import pprint
 import ast
 import subprocess
 
@@ -28,7 +28,7 @@ class Texts(commands.Cog):
 
     @tasks.loop(seconds=0.5)
     async def check_tweets(self):
-        pprint(shared_tweets)
+        print(shared_tweets)
         for handle in shared_tweets:
             if handle not in self.subsconfig:
                 continue
