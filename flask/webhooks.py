@@ -1,6 +1,6 @@
 from flask import Flask, request, redirect
 from twilio.twiml.messaging_response import MessagingResponse
-from tweets import create_api
+from ..tweets import create_api
 import tweepy as tp
 
 app = Flask(__name__)
