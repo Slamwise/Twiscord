@@ -7,7 +7,6 @@ import tweepy as tp
 import asyncio
 import logging
 from datetime import datetime
-import pytz
 from dotenv import load_dotenv
 import os
 
@@ -45,6 +44,7 @@ class Tweets(commands.Cog):
 
     @tasks.loop(seconds=1)
     async def tweet_fetcher(self):
+        pprint(shared_tweets['imbesci'])
         fetched = False
         while not fetched:
             try:
@@ -87,7 +87,6 @@ class Tweets(commands.Cog):
 
         else:  # first fetch tweet.created_at, tweet.author.screen_name.strip().lower(), tweet.id, tweet.full_text
             self.recency_queue = OrderedDequeSet(fresh_tweets, maxlen=200)
-            pprint(self.recency_queue)
             [shared_tweets[tweet[1]].add(tweet) for tweet in self.recency_queue]
             self.count += 1
             # print(self.count)
