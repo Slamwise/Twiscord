@@ -1,6 +1,6 @@
 from flask import Flask, request, redirect
 from twilio.twiml.messaging_response import MessagingResponse
-from ..tweets import create_api
+import tweets
 import tweepy as tp
 
 app = Flask(__name__)
@@ -30,7 +30,7 @@ def sms_reply():
         print(number)
 
         if args[1] != "ALL":
-            api: tp.API = create_api()
+            api: tp.API = tweets.create_api()
             for handle in args[1:]:
                 try:
                     _ = api.get_user(handle)
