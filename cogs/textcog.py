@@ -28,6 +28,7 @@ class Texts(commands.Cog):
 
     @tasks.loop(seconds=0.5)
     async def check_tweets(self):
+        print(self.subsconfig)
         for handle in shared_tweets:
             if handle not in self.subsconfig:
                 continue
