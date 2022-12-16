@@ -29,7 +29,6 @@ class Texts(commands.Cog):
     @tasks.loop(seconds=0.5)
     async def check_tweets(self):
         for handle in shared_tweets:
-            print(handle)
             if handle not in self.subsconfig:
                 continue
             else:
@@ -40,7 +39,7 @@ class Texts(commands.Cog):
                 print('1')
                 nums = tuple(self.subsconfig[handle])
                 if handle not in self.msg_history or shared_tweets[handle][-1] != self.msg_history[handle][-1][0]:
-                    print('2')
+                    print(shared_tweets[handle][-1])
                     self.msg_history[handle].add((shared_tweets[handle][-1], nums))
                     for num in nums:
                         print('3')
@@ -62,7 +61,7 @@ class Texts(commands.Cog):
 
         else:
             try:
-                cleaned_name = args[1].strip()
+                cleaned_name = args[1].strip().lower()
                 _ = self.api.get_user(screen_name=cleaned_name)
                 self.subsconfig[cleaned_name].append(args[0])
                 asyncio.create_task(ctx.send(f"{args[0]} now following {args[1]}"))
