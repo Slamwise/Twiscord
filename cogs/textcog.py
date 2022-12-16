@@ -48,42 +48,42 @@ class Texts(commands.Cog):
     async def subscribe_texts(self, ctx=commands.Context, *args):
         """Subscribe a phone number to receive notifcations from a specified Twitter handle"""
         if not args or len(args[0]) != 10:
-            await ctx.send("Please provide a valid US phone number in format: ?##########")
+            asyncio.create_task(ctx.send("Please provide a valid US phone number in format: ?##########"))
 
         elif len(args) != 2:
-            await ctx.send("Please use command with format: ?subscribe_texts <phone number> <twitter handle>")
+            asyncio.create_task(ctx.send("Please use command with format: ?subscribe_texts <phone number> <twitter handle>"))
 
         else:
             try:
                 cleaned_name = args[1].strip()
                 _ = self.api.get_user(screen_name=cleaned_name)
                 self.subsconfig[cleaned_name].add(args[0])
-                await ctx.send(f"{args[0]} now following {args[1]}")
+                asyncio.create_task(ctx.send(f"{args[0]} now following {args[1]}"))
             except tp.NotFound as e:
-                await ctx.send(f"Twitter user {args[1]} is not valid account")
+                asyncio.create_task(ctx.send(f"Twitter user {args[1]} is not valid account"))
                 logging.info(e)
             except Exception as e:
-                await ctx.send(f"Another error occurred please try again later")
+                asyncio.create_task(ctx.send(f"Another error occurred please try again later"))
                 logging.warn(e)
 
     @commands.command()
     async def unsubscribe_texts(self, ctx=commands.Context, *args):
         """Remove a phone number from the specified Twitter handle's notifications"""
         if not args or len(args[0]) != 10:
-            await ctx.send("Please provide a valid US phone number in format: ?##########")
+            asyncio.create_task(ctx.send("Please provide a valid US phone number in format: ?##########"))
         elif len(args) != 2:
-            await ctx.send("Please use command with format: ?subscribe_texts <phone number> <twitter handle>")
+            asyncio.create_task(ctx.send("Please use command with format: ?subscribe_texts <phone number> <twitter handle>"))
         else:
             try:
                 cleaned_name = args[1].strip().lower()
                 _ = self.api.get_user(screen_name=cleaned_name)
                 self.subsconfig[cleaned_name].remove(args[0])
-                await ctx.send(f"{args[0]} unsubscribed from {args[1]}")
+                asyncio.create_task(ctx.send(f"{args[0]} unsubscribed from {args[1]}"))
             except tp.NotFound as e:
-                await ctx.send(f"Twitter user {args[1]} is not valid account")
+                asyncio.create_task(ctx.send(f"Twitter user {args[1]} is not valid account"))
                 logging.info(e)
             except Exception as e:
-                await ctx.send(f"Another error occurred please try again later")
+                asyncio.create_task(ctx.send(f"Another error occurred please try again later"))
                 logging.warn(e)
 
 async def setup(bot: commands.Bot):
