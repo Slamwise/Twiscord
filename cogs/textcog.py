@@ -28,8 +28,8 @@ class Texts(commands.Cog):
 
     @tasks.loop(seconds=0.5)
     async def check_tweets(self):
-        print(self.subsconfig)
         for handle in shared_tweets:
+            print(handle)
             if handle not in self.subsconfig:
                 continue
             else:
@@ -37,13 +37,13 @@ class Texts(commands.Cog):
                 for line in change_queue.splitlines(keepends=False):
                     change = ast.literal_eval(line)
                     pprint(change)
-                pprint('1')
+                print('1')
                 nums = tuple(self.subsconfig[handle])
                 if handle not in self.msg_history or shared_tweets[handle][-1] != self.msg_history[handle][-1][0]:
-                    pprint('2')
+                    print('2')
                     self.msg_history[handle].add((shared_tweets[handle][-1], nums))
                     for num in nums:
-                        pprint('3')
+                        print('3')
                         await send_sms(num, shared_tweets[handle][-1][-1])
 
     @check_tweets.before_loop
