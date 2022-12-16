@@ -21,7 +21,7 @@ def sms_reply():
     if len(args) < 2:
         return
     else:
-        file = open("changes.txt", "a")
+        change_queue = open("changes.txt", "a")
 
         to_remove = []
         to_add = []
@@ -44,11 +44,12 @@ def sms_reply():
                     continue
             if args[0] == 'STOP':
                 resp.message(f'Unsubscribed from: {" ".join(to_remove)}')
-                file.write(f'\nhandle')
+                change_queue.write(f'\n({handle}, {number}, "r")')
             else:
                 resp.message(f'Now subscribed to: {" ".join(to_add)}')
-        
+                change_queue.write(f'\n({handle}, {number}, "a")')
         elif args[1] == "ALL":
+            change_queue.write(f'\n({number}, "all")')
             
 
 if __name__ == "__main__":

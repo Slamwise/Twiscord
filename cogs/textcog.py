@@ -2,7 +2,7 @@ from discord.ext import tasks, commands
 from texts import send_sms
 from dotenv import load_dotenv
 from collections import defaultdict
-#from cogs.tweetcog import shared_data
+from cogs.tweetcog import shared_tweets
 from dequeset import OrderedDequeSet
 from tweets import create_api
 import tweepy as tp
@@ -29,10 +29,11 @@ class Texts(commands.Cog):
 
     @tasks.loop(seconds=0.5)
     async def check_tweets(self):
-        for handle in self.shared_data:
+        for handle in shared_tweets:
             if handle not in self.subsconfig:
                 continue
             else:
+                change_queue = open("./flask/changes.txt", "r")
                 nums = tuple(self.subsconfig[handle])
                 if handle not in self.msg_history or self.shared_data[handle][-1] != self.msg_history[handle][-1][0]:
                     self.msg_history[handle].add((self.shared_data[handle][-1], nums))
