@@ -28,14 +28,14 @@ class Texts(commands.Cog):
 
     @tasks.loop(seconds=0.5)
     async def check_tweets(self):
-        print(self.subsconfig)
         for handle in shared_tweets:
             if handle not in self.subsconfig:
                 continue
             elif handle in self.subsconfig:
-                # change_queue = open("changes.txt", "r")
-                # for line in change_queue.splitlines(keepends=False):
-                #     change = ast.literal_eval(line)
+                with open("changes.txt", "r") as f:
+                    for line in f.splitlines(keepends=False):
+                        change = ast.literal_eval(line)
+                        print(change)
                 nums = tuple(self.subsconfig[handle])
                 if handle not in self.msg_history or shared_tweets[handle][-1] != self.msg_history[handle][-1][0]:
                     print(shared_tweets[handle][-1])
