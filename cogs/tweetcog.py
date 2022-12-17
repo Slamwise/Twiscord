@@ -1,4 +1,5 @@
 from discord.ext import tasks, commands
+from discord import Embed, Colour
 from pprint import pprint
 from tweets import create_api, get_list_timeline
 from collections import deque, defaultdict
@@ -77,7 +78,22 @@ class Tweets(commands.Cog):
 
                     channels = self.subsconfig.get(account)
                     for channel in channels:
-                        [asyncio.create_task(self.bot.get_channel(channel).send(tweet[3])) for tweet in new_tweets]
+                        [
+                            asyncio.create_task(
+                                self.bot.get_channel(channel).send(
+                                    content=f"https://twitter.com/{tweet[1]}/status/{tweet[2]}",
+                                    embed=Embed(
+                                        colour=Colour.from_rgb(52, 61, 65),
+                                        timestamp=datetime.fromtimestamp(tweet[0]),
+                                        title=f"@{tweet[1]}",
+                                        url=f"https://twitter.com/{tweet[1]}/status/{tweet[2]}",
+                                        description=tweet[3],
+                                        type="rich",
+                                    ),
+                                )
+                            )
+                            for tweet in new_tweets
+                        ]
 
             self.recency_queue = self.recency_queue.union(recent_tweets)
             [shared_tweets[tweet[1]].add(tweet) for tweet in recent_tweets]
