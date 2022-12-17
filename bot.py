@@ -6,6 +6,7 @@ import os
 from pprint import pprint
 import asyncio
 
+
 def main():
     load_dotenv()
 
@@ -45,6 +46,7 @@ def main():
     token = os.environ.get("DISCORD_BOT_TOKEN")
 
     bot.run(token)
+
 
 if __name__ == "__main__":
     main()
