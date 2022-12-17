@@ -34,10 +34,8 @@ class Texts(commands.Cog):
         self.cache = deepcopy(shared_tweets)
         for handle in shared_tweets:
             if handle not in self.subsconfig:
-                print("seen in if statement")
                 continue
             else:
-                print("seen in else statement")
                 with open("changes.txt", "r") as change_queue:
                     for line in change_queue.readlines():
                         change = ast.literal_eval(line)
