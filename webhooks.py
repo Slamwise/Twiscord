@@ -43,10 +43,10 @@ def sms_reply():
                 except Exception as e:
                     continue
             if args[0] == 'STOP':
-                resp.message(f'Unsubscribed from: {" ".join(to_remove)}')
+                resp.message(f'Unsubscribed from: {", ".join(to_remove)}')
                 change_queue.write(f'\n({handle}, {number}, "r")')
             else:
-                resp.message(f'Now subscribed to: {" ".join(to_add)}')
+                resp.message(f'Now subscribed to: {", ".join(to_add)}')
                 change_queue.write(f'\n({handle}, {number}, "a")')
         elif args[1] == "ALL":
             change_queue.write(f'\n({number}, "all")')
