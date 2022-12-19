@@ -25,7 +25,7 @@ class Texts(commands.Cog):
 
     @commands.Cog.listener()
     async def on_ready(self):
-        # server = subprocess.Popen(["python3", "webhooks.py"])
+        server = subprocess.Popen(["python3", "webhooks.py"])
         if not self.check_tweets.is_running():
             await self.check_tweets.start()
 

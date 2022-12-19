@@ -5,6 +5,16 @@ import tweepy as tp
 
 app = Flask(__name__)
 
+@app.route("/")
+def home():
+    """Base home template"""
+    return "<p>Example for the boys</p>"
+
+@app.route("/example")
+def example():
+    """Example route beyond index"""
+    return "<h1>WE MADE IT</h1>"
+
 @app.route("/sms", methods=['GET', 'POST'])
 def sms_reply():
     """Respond to incoming calls with a simple text message."""
@@ -50,7 +60,6 @@ def sms_reply():
                 change_queue.write(f'\n({handle}, {number}, "a")')
         elif args[1] == "ALL":
             change_queue.write(f'\n({number}, "all")')
-            
 
 if __name__ == "__main__":
-    app.run(debug=True)
+    app.run()
