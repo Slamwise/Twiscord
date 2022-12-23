@@ -57,12 +57,12 @@ def sms_reply():
                     continue
             if args[0] == 'STOP':
                 resp.message(f'Unsubscribed from: {", ".join(to_remove)}')
-                change_queue.write(f'\n{number}, {handle}, "r"')
+                change_queue.write(f'\n{number} {handle} "r"')
             else:
                 resp.message(f'Now subscribed to: {", ".join(to_add)}')
-                change_queue.write(f'\n{number}, {handle}, "a"')
+                change_queue.write(f'\n{number} {handle} "a"')
         elif args[1] == "ALL":
-            change_queue.write(f'\n{number}, "all", "all"')
+            change_queue.write(f'\n{number} "all" "all"')
 
 @app.route("/get_changes")
 def get_changes():
@@ -75,5 +75,52 @@ def get_changes():
         else:
             return Response(status=204)
 
+@app.route("/clear_all_changes")
+def clear_all_changes():
+    # Get the number parameter from the query string
+    number = request.args.get('number')
+  
+    # Open the text file in read mode
+    with open("changes.txt", "r") as f:
+        # Read the lines of the file into a list
+        lines = f.readlines()
+
+    # Open the text file in write mode
+    with open("changes.txt", "w") as f:
+        # Iterate through the lines of the file
+        for line in lines:
+        # If the line does not contain the number, write it to the file
+            if number not in line:
+                f.write(line)
+
+    # Return a success message
+    return "Successfully deleted all lines containing {}".format(number)
+
+@app.route("/clear_changes")
+def clear_changes():
+    # Get the number and handle parameters from the query string
+    number = request.args.get('number')
+    handle = request.args.get('handle')
+  
+    # Open the text file in read mode
+    with open("changes.txt", "r") as f:
+        # Read the lines of the file into a list
+        lines = f.readlines()
+
+    # Open the text file in write mode
+    with open("changes.txt", "w") as f:
+        # Iterate through the lines of the file
+        for line in lines:
+            # Split the line into a list of words
+            words = line.split()
+            # If the line does not contain both the number and the handle, write it to the file
+            if number not in words or handle not in words:
+                f.write(line)
+
+    # Return a success message
+    return 'Successfully deleted lines containing {} and {}'.format(number, handle)
+
+
+  
 if __name__ == "__main__":
     app.run()

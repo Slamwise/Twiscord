@@ -50,7 +50,16 @@ class Texts(commands.Cog):
                     for num in nums:
                         sub_changes = (c for c in changes if c[0] == num)
                         for s in list[sub_changes]:
-                            if s[-1]
+                            if s[-1] == "r":
+                                self.subsconfig[s[1]].remove(s[0])
+                                requests.post(f"http://3.92.223.40/clear_changes?number={num}&handle={s[1]}")
+                            if s[-1] == "all":
+                                for h in self.subsconfig.values():
+                                    h.remove(s[0])
+                                    requests.post(f"http://3.92.223.40/clear_all_changes?number={num}")
+                            if s[-1] == "a":
+                                self.subsconfig[s[1]].add(s[0])
+                                requests.post(f"http://3.92.223.40/clear_changes?number={num}&handle={s[1]}")
                             
                         await send_sms(num, shared_tweets[handle][-1][-1])
 
