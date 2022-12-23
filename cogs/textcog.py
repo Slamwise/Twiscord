@@ -1,7 +1,6 @@
 from discord.ext import tasks, commands
 from texts import send_sms
 from collections import defaultdict
-
 from cogs.tweetcog import shared_tweets
 from dequeset import OrderedDequeSet
 from tweets import create_api
@@ -13,7 +12,9 @@ from pprint import pprint
 import ast
 import subprocess
 from copy import deepcopy
-
+from webhooks import app
+from threading import Thread
+import requests
 
 class Texts(commands.Cog):
     def __init__(self, bot: commands.Bot):
@@ -25,7 +26,11 @@ class Texts(commands.Cog):
 
     @commands.Cog.listener()
     async def on_ready(self):
-        server = subprocess.Popen(["python3", "webhooks.py"])
+        #server = subprocess.Popen(["python3", "webhooks.py"])
+        if requests.get("http://3.92.223.40/example").status_code != 200:
+            server = Thread(target=app.run)
+            server.start()
+
         if not self.check_tweets.is_running():
             await self.check_tweets.start()
 
@@ -37,13 +42,25 @@ class Texts(commands.Cog):
                 continue
             else:
                 with open("changes.txt", "r") as change_queue:
-                    for line in change_queue.readlines():
-                        change = ast.literal_eval(line)
-                        pprint(change)
+                    # ({handle}, {number}, "a") "a": add number to handle subscriptions, "r": remove, "all": remove number from all subscriptions
+                    changes = [tuple(line.split() for line in change_queue.readlines())]
                 nums = tuple(self.subsconfig[handle])
                 if handle not in self.msg_history or shared_tweets[handle][-1] != self.msg_history[handle][-1][0]:
                     self.msg_history[handle].add((shared_tweets[handle][-1], nums))
                     for num in nums:
+                        sub_changes = (c for c in changes if c[0] == num)
+                        for s in list[sub_changes]:
+                            if s[-1] == "r":
+                                self.subsconfig[s[1]].remove(s[0])
+                                requests.post(f"http://3.92.223.40/clear_changes?number={num}&handle={s[1]}")
+                            if s[-1] == "all":
+                                for h in self.subsconfig.values():
+                                    h.remove(s[0])
+                                    requests.post(f"http://3.92.223.40/clear_all_changes?number={num}")
+                            if s[-1] == "a":
+                                self.subsconfig[s[1]].add(s[0])
+                                requests.post(f"http://3.92.223.40/clear_changes?number={num}&handle={s[1]}")
+                            
                         await send_sms(num, shared_tweets[handle][-1][-1])
 
     @check_tweets.before_loop
