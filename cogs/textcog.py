@@ -44,10 +44,11 @@ class Texts(commands.Cog):
                 continue
             else:
                 resp = requests.get(f"http://3.92.223.40/get_changes")
-                changes = json.loads(decrypt_msg(resp, "priv_key.pm"))
+                json_object = json.loads(decrypt_msg(resp, "priv_key.pm"))
+                changes = [tuple(x) for x in json_object]
 
                 nums = tuple(self.subsconfig[handle])
-                
+
                 if handle not in self.msg_history or shared_tweets[handle][-1] != self.msg_history[handle][-1][0]:
                     self.msg_history[handle].add((shared_tweets[handle][-1], nums))
                     for num in nums:
