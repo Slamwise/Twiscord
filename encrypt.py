@@ -13,7 +13,7 @@ def encrypt_msg(msg, pub_key_file):
 
     # Encrypt the message
     encrypted_message = public_key.encrypt(
-        msg,
+        msg.encode(),
         padding.OAEP(
             mgf=padding.MGF1(algorithm=hashes.SHA256()),
             algorithm=hashes.SHA256(),
@@ -46,7 +46,7 @@ def decrypt_msg(msg, priv_key_file):
         )
     )
 
-    return message
+    return message.decode()
 
 def generate_keys(pub_key_file, priv_key_file):
     # Generate a private key
