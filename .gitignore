@@ -5,3 +5,5 @@ __pycache__
 logs
 changes.txt
 *.log
+priv_key.pm
+pub_key.pm
