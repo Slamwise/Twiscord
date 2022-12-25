@@ -1,6 +1,7 @@
 from flask import Flask, request, redirect, Response
 from twilio.twiml.messaging_response import MessagingResponse
 from tweets import create_api
+from encrypt import encrypt_msg
 import tweepy as tp
 import json
 
@@ -71,7 +72,8 @@ def get_changes():
         if data:
             changes = [tuple(line.split() for line in data.split("\n"))]
             changes_json = json.dumps(changes)
-            return Response(changes_json, status=200, mimetype='application/json')
+            changes_json_e = encrypt_msg(changes_json, "pub_key.pm")
+            return Response(changes_json_e, status=200, mimetype='application/json')
         else:
             return Response(status=204)
 

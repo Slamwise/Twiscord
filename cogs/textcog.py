@@ -15,6 +15,8 @@ from copy import deepcopy
 from webhooks import app
 from threading import Thread
 import requests
+from encrypt import decrypt_msg
+import json
 
 class Texts(commands.Cog):
     def __init__(self, bot: commands.Bot):
@@ -41,15 +43,16 @@ class Texts(commands.Cog):
             if handle not in self.subsconfig:
                 continue
             else:
-                with open("changes.txt", "r") as change_queue:
-                    # ({handle}, {number}, "a") "a": add number to handle subscriptions, "r": remove, "all": remove number from all subscriptions
-                    changes = [tuple(line.split() for line in change_queue.readlines())]
+                resp = requests.get(f"http://3.92.223.40/get_changes")
+                changes = json.loads(decrypt_msg(resp, "priv_key.pm"))
+
                 nums = tuple(self.subsconfig[handle])
+                
                 if handle not in self.msg_history or shared_tweets[handle][-1] != self.msg_history[handle][-1][0]:
                     self.msg_history[handle].add((shared_tweets[handle][-1], nums))
                     for num in nums:
                         sub_changes = (c for c in changes if c[0] == num)
-                        for s in list[sub_changes]:
+                        for s in [sub_changes]:
                             if s[-1] == "r":
                                 self.subsconfig[s[1]].remove(s[0])
                                 requests.post(f"http://3.92.223.40/clear_changes?number={num}&handle={s[1]}")
