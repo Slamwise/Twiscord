@@ -44,7 +44,8 @@ class Texts(commands.Cog):
                 continue
             else:
                 resp = requests.get(f"http://3.92.223.40/get_changes")
-                changes = json.loads(decrypt_msg(resp, "priv_key.pm"))
+                json_object = json.loads(decrypt_msg(resp, "priv_key.pm"))
+                changes = [tuple(x) for x in json_object]
 
                 nums = tuple(self.subsconfig[handle])
                 
