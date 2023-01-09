@@ -25,6 +25,7 @@ class Texts(commands.Cog):
         self.api: tp.API = create_api()
         # Needs to be pickled on shutdown:
         self.msg_history = defaultdict(lambda: OrderedDequeSet(maxlen=100))
+        print('success')
 
     @commands.Cog.listener()
     async def on_ready(self):
