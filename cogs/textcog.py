@@ -64,7 +64,7 @@ class Texts(commands.Cog):
         for handle in self.shared_tweets: # Check each handle {handle: ODS[tweet1, tweet2, ...]}
             if handle not in self.subsconfig:
                 continue
-            elif self.shared_tweets[handle][-1] not in self.msg_history[handle]:
+            elif self.shared_tweets[handle][-1] not in [msg[0] for msg in self.msg_history[handle]]:
                 nums = tuple(self.subsconfig[handle]) # (num1, num2, ...) subscribed to this twitter handle
                 self.msg_history[handle].add((self.shared_tweets[handle][-1], nums))
                 for num in nums:
