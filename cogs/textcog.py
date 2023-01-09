@@ -65,6 +65,7 @@ class Texts(commands.Cog):
     @tasks.loop(seconds=2)
     async def check_tweets(self):
         self.shared_tweets = deepcopy(shared_tweets)
+        print(self.shared_tweets['traders37'])
         for handle in self.shared_tweets: # Check each handle {handle: ODS[tweet1, tweet2, ...]}
             if handle not in self.subsconfig:
                 continue
