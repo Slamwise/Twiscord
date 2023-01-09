@@ -185,12 +185,15 @@ class Tweets(commands.Cog):
             try:
                 cleaned_name = args[0].strip().lower()
                 _ = self.api.get_user(screen_name=cleaned_name)
-                self.subsconfig[cleaned_name].append(ctx.channel.id)
-                if cleaned_name not in self.global_list:
-                    self.global_list.append(cleaned_name)
-                    self.add_list_member(cleaned_name)
-                await ctx.send(f"Now following {args[0]}")
-                self.most_recent_update = datetime.now().timestamp()
+                if ctx.channel.id not in self.subsconfig[cleaned_name]:
+                    self.subsconfig[cleaned_name].append(ctx.channel.id)
+                    if cleaned_name not in self.global_list:
+                        self.global_list.append(cleaned_name)
+                        self.add_list_member(cleaned_name)
+                    await ctx.send(f"Now following {args[0]}")
+                    self.most_recent_update = datetime.now().timestamp()
+                else:
+                    await ctx.send(f"Twitter user {args[0]} is already followed on this channel.")
             except tp.NotFound as e:
                 await ctx.send(f"Twitter user {args[0]} is not valid account")
                 logging.info(e)
