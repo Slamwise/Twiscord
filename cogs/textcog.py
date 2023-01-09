@@ -25,11 +25,9 @@ class Texts(commands.Cog):
         self.api: tp.API = create_api()
         # Needs to be pickled on shutdown:
         self.msg_history = defaultdict(lambda: OrderedDequeSet(maxlen=100))
-        print('success')
 
     @commands.Cog.listener()
     async def on_ready(self):
-        print('ready')
         #server = subprocess.Popen(["python3", "webhooks.py"])
         if requests.get("http://3.92.223.40/example").status_code != 200:
             server = Thread(target=app.run)
@@ -41,6 +39,7 @@ class Texts(commands.Cog):
 
     @tasks.loop(seconds=0.5)
     async def check_changes(self):
+        print("test1")
         nums = set(number for handle in self.subsconfig for number in handle)
         try:
             resp = requests.get(f"http://3.92.223.40/get_changes")
@@ -66,6 +65,7 @@ class Texts(commands.Cog):
 
     @tasks.loop(seconds=2)
     async def check_tweets(self):
+        print("test2")
         self.shared_tweets = deepcopy(shared_tweets)
         print(self.shared_tweets['traders37'])
         for handle in self.shared_tweets: # Check each handle {handle: ODS[tweet1, tweet2, ...]}
@@ -127,5 +127,4 @@ class Texts(commands.Cog):
 
 
 async def setup(bot: commands.Bot):
-    print('test')
     await bot.add_cog(Texts(bot))
