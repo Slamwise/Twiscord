@@ -126,4 +126,5 @@ class Texts(commands.Cog):
 
 
 async def setup(bot: commands.Bot):
+    print('test')
     await bot.add_cog(Texts(bot))
