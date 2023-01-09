@@ -67,12 +67,10 @@ class Texts(commands.Cog):
                 continue
             elif self.shared_tweets[handle][-1] not in self.msg_history[handle]:
                 print('send a text')
-                if self.shared_tweets[handle][-1] != self.msg_history[handle][-1][0]:
-                    print('send a text 2')
-                    nums = tuple(self.subsconfig[handle]) # (num1, num2, ...) subscribed to this twitter handle
-                    self.msg_history[handle].add((self.shared_tweets[handle][-1], nums))
-                    for num in nums:
-                        await send_sms(num, self.shared_tweets[handle][-1][-1])
+                nums = tuple(self.subsconfig[handle]) # (num1, num2, ...) subscribed to this twitter handle
+                self.msg_history[handle].add((self.shared_tweets[handle][-1], nums))
+                for num in nums:
+                    await send_sms(num, self.shared_tweets[handle][-1][-1])
 
     @check_tweets.before_loop
     async def _precheck(self):
