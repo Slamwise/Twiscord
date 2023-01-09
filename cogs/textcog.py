@@ -29,6 +29,7 @@ class Texts(commands.Cog):
 
     @commands.Cog.listener()
     async def on_ready(self):
+        print('ready')
         #server = subprocess.Popen(["python3", "webhooks.py"])
         if requests.get("http://3.92.223.40/example").status_code != 200:
             server = Thread(target=app.run)
