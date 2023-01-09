@@ -60,14 +60,15 @@ class Texts(commands.Cog):
         except Exception as e:
             logging.info(e)
 
-        print("test2")
         self.shared_tweets = deepcopy(shared_tweets)
-        print(self.shared_tweets['traders37'])
         for handle in self.shared_tweets: # Check each handle {handle: ODS[tweet1, tweet2, ...]}
             if handle not in self.subsconfig:
+                print('continuing')
                 continue
             elif handle[-1] not in self.msg_history:
+                print('send a text')
                 if self.shared_tweets[handle][-1] != self.msg_history[handle][-1][0]:
+                    print('send a text 2')
                     nums = tuple(self.subsconfig[handle]) # (num1, num2, ...) subscribed to this twitter handle
                     self.msg_history[handle].add((self.shared_tweets[handle][-1], nums))
                     for num in nums:
