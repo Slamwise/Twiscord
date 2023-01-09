@@ -65,7 +65,7 @@ class Texts(commands.Cog):
             if handle not in self.subsconfig:
                 print('continuing')
                 continue
-            elif handle[-1] not in self.msg_history:
+            elif self.shared_tweets[handle][-1] not in self.msg_history[handle]:
                 print('send a text')
                 if self.shared_tweets[handle][-1] != self.msg_history[handle][-1][0]:
                     print('send a text 2')
