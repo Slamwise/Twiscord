@@ -63,14 +63,13 @@ class Texts(commands.Cog):
         self.shared_tweets = deepcopy(shared_tweets)
         for handle in self.shared_tweets: # Check each handle {handle: ODS[tweet1, tweet2, ...]}
             if handle not in self.subsconfig:
-                print('continuing')
                 continue
             elif self.shared_tweets[handle][-1] not in self.msg_history[handle]:
-                print('send a text')
                 nums = tuple(self.subsconfig[handle]) # (num1, num2, ...) subscribed to this twitter handle
                 self.msg_history[handle].add((self.shared_tweets[handle][-1], nums))
                 for num in nums:
-                    await send_sms(num, self.shared_tweets[handle][-1][-1])
+                    print(self.msg_history[handle])
+                    #await send_sms(num, self.shared_tweets[handle][-1][-1])
 
     @check_tweets.before_loop
     async def _precheck(self):
