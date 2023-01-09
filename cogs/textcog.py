@@ -32,40 +32,48 @@ class Texts(commands.Cog):
         if requests.get("http://3.92.223.40/example").status_code != 200:
             server = Thread(target=app.run)
             server.start()
-
+        if not self.check_changes.is_running():
+            await self.check_changes.start()
         if not self.check_tweets.is_running():
             await self.check_tweets.start()
 
+    @tasks.loop(seconds=0.5)
+    async def check_changes(self):
+        nums = set(number for handle in self.subsconfig for number in handle)
+        try:
+            resp = requests.get(f"http://3.92.223.40/get_changes")
+            json_object = json.loads(decrypt_msg(resp, "priv_key.pm"))
+            changes = [tuple(x) for x in json_object]
+            print("first")
+            for num in nums:
+                sub_changes = (c for c in changes if c[0] == num)
+                for s in [sub_changes]:
+                    if s[-1] == "r":
+                        self.subsconfig[s[1]].remove(s[0])
+                        requests.post(f"http://3.92.223.40/clear_changes?number={num}&handle={s[1]}")
+                    if s[-1] == "all":
+                        for h in self.subsconfig.values():
+                            h.remove(s[0])
+                            requests.post(f"http://3.92.223.40/clear_all_changes?number={num}")
+                    if s[-1] == "a":
+                        self.subsconfig[s[1]].add(s[0])
+                        requests.post(f"http://3.92.223.40/clear_changes?number={num}&handle={s[1]}")
+            print("second")
+        except Exception as e:
+            logging.info(e)
+
     @tasks.loop(seconds=2)
     async def check_tweets(self):
-        self.cache = deepcopy(shared_tweets)
-        for handle in shared_tweets:
+        self.shared_tweets = deepcopy(shared_tweets)
+        for handle in self.shared_tweets: # Check each handle {handle: ODS[tweet1, tweet2, ...]}
             if handle not in self.subsconfig:
                 continue
-            else:
-                resp = requests.get(f"http://3.92.223.40/get_changes")
-                json_object = json.loads(decrypt_msg(resp, "priv_key.pm"))
-                changes = [tuple(x) for x in json_object]
-
-                nums = tuple(self.subsconfig[handle])
-                
-                if handle not in self.msg_history or shared_tweets[handle][-1] != self.msg_history[handle][-1][0]:
-                    self.msg_history[handle].add((shared_tweets[handle][-1], nums))
+            elif handle[-1] not in self.msg_history:
+                if self.shared_tweets[handle][-1] != self.msg_history[handle][-1][0]:
+                    nums = tuple(self.subsconfig[handle]) # (num1, num2, ...) subscribed to this twitter handle
+                    self.msg_history[handle].add((self.shared_tweets[handle][-1], nums))
                     for num in nums:
-                        sub_changes = (c for c in changes if c[0] == num)
-                        for s in [sub_changes]:
-                            if s[-1] == "r":
-                                self.subsconfig[s[1]].remove(s[0])
-                                requests.post(f"http://3.92.223.40/clear_changes?number={num}&handle={s[1]}")
-                            if s[-1] == "all":
-                                for h in self.subsconfig.values():
-                                    h.remove(s[0])
-                                    requests.post(f"http://3.92.223.40/clear_all_changes?number={num}")
-                            if s[-1] == "a":
-                                self.subsconfig[s[1]].add(s[0])
-                                requests.post(f"http://3.92.223.40/clear_changes?number={num}&handle={s[1]}")
-                            
-                        await send_sms(num, shared_tweets[handle][-1][-1])
+                        await send_sms(num, self.shared_tweets[handle][-1][-1])
 
     @check_tweets.before_loop
     async def _precheck(self):
