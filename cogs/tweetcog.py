@@ -131,26 +131,26 @@ class Tweets(commands.Cog):
     async def showall(self, ctx: commands.Context):
         """Show all accounts the bot currently tracks"""
         if not self.global_list:
-            await ctx.send("No one in the global list")
+            await ctx.reply("No one in the global list")
             return
 
-        await ctx.send(", ".join(self.global_list))
+        await ctx.reply(", ".join(self.global_list))
 
     @commands.command(name="recent")
     async def recent_x(self, ctx: commands.Context, *args):
         """Display the most recent x twitter users in the fetch list"""
         if len(args) != 1:
-            await ctx.send("Please only provide one number")
+            await ctx.reply("Please only provide one number")
             return
 
         try:
             num = int(args[0])
             if len(self.global_list) < num:
-                await ctx.send(", ".join(self.global_list))
+                await ctx.reply(", ".join(self.global_list))
             else:
-                await ctx.send(", ".join(self.global_list[-1 : (-1 - num) : -1]))
+                await ctx.reply(", ".join(self.global_list[-1 : (-1 - num) : -1]))
         except ValueError:
-            await ctx.send("Please only use numbers")
+            await ctx.reply("Please only use numbers")
 
     @commands.command(name="followingnow")
     async def followingnow(self, ctx: commands.Context):
@@ -158,28 +158,28 @@ class Tweets(commands.Cog):
         follows = [account for account, channels in self.subsconfig.items() if ctx.channel.id in channels]
         lenfol = len(follows)
         if lenfol == 0:
-            await ctx.send("This channel is currently following: No one")
+            await ctx.reply("This channel is currently following: No one")
         else:
-            await ctx.send(f"This channel is currently following: {', '.join(follows)}")
+            await ctx.reply(f"This channel is currently following: {', '.join(follows)}")
 
     @commands.command()
     async def follow(self, ctx: commands.Context, *args):
         """Follow a new user in this channel"""
         if not args:
-            await ctx.send("Please provide an account with the command e.g ?follow firstsquawk or ?follow !all")
+            await ctx.reply("Please provide an account with the command e.g ?follow firstsquawk or ?follow !all")
 
         elif len(args) > 1:
-            await ctx.send("?follow can only handle one account at a time.")
+            await ctx.reply("?follow can only handle one account at a time.")
 
         elif args[0] == "!all":
             if not self.global_list:
-                await ctx.send("No one in global list, please specify an account")
+                await ctx.reply("No one in global list, please specify an account")
                 self.most_recent_update = datetime.now().timestamp()
             else:
                 for account in self.global_list:
                     self.subsconfig[account].append(ctx.channel.id)
                     self.most_recent_update = datetime.now().timestamp()
-                ctx.send(f"Following all stored accounts")
+                ctx.reply(f"Following all stored accounts")
 
         else:
             try:
@@ -190,16 +190,16 @@ class Tweets(commands.Cog):
                     if cleaned_name not in self.global_list:
                         self.global_list.append(cleaned_name)
                         self.add_list_member(cleaned_name)
-                    await ctx.send(f"Now following {args[0]}")
-                    self.most_recent_update = datetime.now().timestamp()
+                        await ctx.reply(f"Now following {args[0]}")
+                        self.most_recent_update = datetime.now().timestamp()
                 else:
-                    await ctx.send(f"Twitter user {args[0]} is already followed on this channel.")
+                    await ctx.reply(f"Twitter user {args[0]} is already followed on this channel.")
             except tp.NotFound as e:
-                await ctx.send(f"Twitter user {args[0]} is not valid account")
+                await ctx.reply(f"Twitter user {args[0]} is not valid account")
                 logging.info(e)
             except Exception as e:
                 print(e)
-                await ctx.send(f"Another error occurred please try again later")
+                await ctx.reply(f"Another error occurred please try again later")
 
     @commands.command()
     async def unfollow(self, ctx: commands.Context, *args):
@@ -214,12 +214,12 @@ class Tweets(commands.Cog):
             except (ValueError, KeyError):
                 pass
         if not rem:
-            asyncio.create_task(ctx.send(f"Removed no one from your channel's follows list"))
+            asyncio.create_task(ctx.reply(f"Removed no one from your channel's follows list"))
         else:
             if len(rem) == 1:
-                asyncio.create_task(ctx.send(f"Removed {rem[0]} from your channel's follows list"))
+                asyncio.create_task(ctx.reply(f"Removed {rem[0]} from your channel's follows list"))
             else:
-                asyncio.create_task(ctx.send(f"Removed {', '.join(rem)} from your channel's follows list"))
+                asyncio.create_task(ctx.reply(f"Removed {', '.join(rem)} from your channel's follows list"))
             for name in rem:
                 needed = self.check_user_still_needed(name)
                 if not needed:
@@ -232,7 +232,7 @@ class Tweets(commands.Cog):
         """Start the fetcher if not currently running"""
         tweets = self.bot.get_cog("Tweets")
         if tweets.tweet_fetcher.is_running():
-            await ctx.send(f"Underlying tweet fetcher already running, please provide an account name with the command")
+            await ctx.reply(f"Underlying tweet fetcher already running, please provide an account name with the command")
             return
 
         await self.bot.wait_until_ready()
@@ -248,7 +248,7 @@ class Tweets(commands.Cog):
             tweets.tweet_fetcher.stop()
             return
 
-        await ctx.send("Tweet fetcher not running")
+        await ctx.reply("Tweet fetcher not running")
 
     @commands.command(hidden=True)
     async def rootremove(self, ctx: commands.Context, *args):
@@ -256,7 +256,7 @@ class Tweets(commands.Cog):
         if ctx.channel.id != self._ROOTCHANNEL:
             return
         if len(args) > 1:
-            asyncio.create_task(ctx.send(f"Cannot pass more than one user to remove"))
+            asyncio.create_task(ctx.reply(f"Cannot pass more than one user to remove"))
             return
         self.remove_list_user(args[0])
         if self.subsconfig.get(args[0]):
@@ -271,7 +271,7 @@ class Tweets(commands.Cog):
         for user in all_users:
             screen_name = user.screen_name
             self.remove_list_user(screen_name=screen_name)
-        asyncio.create_task(ctx.send("Removed all users from twitter list"))
+        asyncio.create_task(ctx.reply("Removed all users from twitter list"))
 
 
 async def setup(bot: commands.Bot):
