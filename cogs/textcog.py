@@ -32,21 +32,18 @@ class Texts(commands.Cog):
         if requests.get("http://3.92.223.40/example").status_code != 200:
             server = Thread(target=app.run)
             server.start()
-        if not self.check_changes.is_running():
-            await self.check_changes.start()
         if not self.check_tweets.is_running():
             await self.check_tweets.start()
 
-    @tasks.loop(seconds=0.5)
-    async def check_changes(self):
-        print("test1")
-        nums = set(number for handle in self.subsconfig for number in handle)
+    @tasks.loop(seconds=2)
+    async def check_tweets(self):
+        numbers = set(number for handle in self.subsconfig for number in handle)
         try:
             resp = requests.get(f"http://3.92.223.40/get_changes")
             json_object = json.loads(decrypt_msg(resp, "priv_key.pm"))
             changes = [tuple(x) for x in json_object]
             print("first")
-            for num in nums:
+            for num in numbers:
                 sub_changes = (c for c in changes if c[0] == num)
                 for s in [sub_changes]:
                     if s[-1] == "r":
@@ -63,8 +60,6 @@ class Texts(commands.Cog):
         except Exception as e:
             logging.info(e)
 
-    @tasks.loop(seconds=2)
-    async def check_tweets(self):
         print("test2")
         self.shared_tweets = deepcopy(shared_tweets)
         print(self.shared_tweets['traders37'])
